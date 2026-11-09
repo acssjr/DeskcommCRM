@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 
 import {
@@ -43,8 +44,12 @@ export function PainelDeLoginCodex({
   conectado,
   validada,
   siwcAutorizado,
+  podeTrocar = false,
+  trocando = false,
 }: {
   url: string;
+  podeTrocar?: boolean;
+  trocando?: boolean;
   codeVerifier: string;
   /** Há linha de login nesta empresa? Vem do servidor, já filtrado por módulo. */
   conectado: boolean;
@@ -70,7 +75,7 @@ export function PainelDeLoginCodex({
     identidade_invalida:
       "Não foi possível validar a identidade devolvida pela OpenAI. Gere um link novo e tente conectar outra vez.",
     conta_diferente:
-      "Esta empresa já está vinculada a outra conta ChatGPT. Desconecte a conta atual antes de vincular uma conta diferente.",
+      "Esta empresa já está vinculada a outra conta ChatGPT. Use Trocar conta do ChatGPT para vincular uma conta diferente.",
     registro_incompleto:
       "A OpenAI não concluiu o cadastro desta instalação. Recarregue a tela e tente de novo.",
     host_siwc:
@@ -129,7 +134,7 @@ export function PainelDeLoginCodex({
   return (
     <Card data-testid="painel-login-codex">
       <CardHeader>
-        <CardTitle>{t("Conectar a assinatura do ChatGPT")}</CardTitle>
+        <CardTitle>{t(trocando ? "Trocar conta do ChatGPT" : "Conectar a assinatura do ChatGPT")}</CardTitle>
         <CardDescription>
           {t(
             "Cada empresa conecta a própria conta do ChatGPT. Abra o link e entre com a conta que tem a assinatura. No fim, o navegador vai para http://127.0.0.1:1455/auth/callback, que pode não abrir — é esperado. Copie esse endereço inteiro, da barra do navegador, e cole aqui.",
@@ -137,6 +142,13 @@ export function PainelDeLoginCodex({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {podeTrocar && conectado && (
+          <Button asChild variant="outline">
+            <Link href={trocando ? "/app/ai/credentials" : "/app/ai/credentials?trocar=1"} prefetch={false}>
+              {t(trocando ? "Voltar para a conexão atual" : "Trocar conta do ChatGPT")}
+            </Link>
+          </Button>
+        )}
         <div className="space-y-1">
           <Label htmlFor="codex-link" className="text-base">
             {t("Link de acesso")}

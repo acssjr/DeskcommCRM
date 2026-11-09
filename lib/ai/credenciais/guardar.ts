@@ -229,6 +229,7 @@ export interface PedidoDeRotacionar {
    * não passa este campo e continua zerando a lista.
    */
   manterModelos?: boolean;
+  atualizadoEmEsperado?: string;
   requestId?: string;
 }
 
@@ -271,12 +272,13 @@ export async function rotacionarCredencial(
 
   if (p.label !== undefined) patch.label = p.label;
 
-  const { data: updated, error } = await p.admin
+  let gravacao = p.admin
     .from("ai_provider_credentials")
     .update(patch)
     .eq("id", p.credentialId)
-    .eq("organization_id", p.orgId)
-    .select("id")
+    .eq("organization_id", p.orgId);
+  if (p.atualizadoEmEsperado) gravacao = gravacao.eq("updated_at", p.atualizadoEmEsperado);
+  const { data: updated, error } = await gravacao.select("id")
     .maybeSingle();
 
   if (error) {
