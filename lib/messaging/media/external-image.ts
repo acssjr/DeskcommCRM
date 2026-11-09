@@ -8,7 +8,7 @@ export async function fetchExternalImage(url: string): Promise<FetchedMedia> {
   await assertUrlDeMidiaSegura(url);
   const response = await fetch(url, { redirect: "error", credentials: "omit", signal: AbortSignal.timeout(30_000) });
   if (!response.ok) throw new Error("external_image_unavailable");
-  const mime = response.headers.get("content-type")?.split(";")[0].trim().toLowerCase();
+  const mime = response.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
   if (!mime || !IMAGE_MIMES.has(mime)) {
     await response.body?.cancel();
     throw new Error("external_image_unsupported_type");
