@@ -22,7 +22,7 @@ import { DEFAULT_CLASSIFIER_MODEL } from "@/lib/ai/gateway";
 import { resolverModeloDoPonto } from "@/lib/ai/gateway-binding";
 import { lerAmbiente } from "@/lib/instalacao/ambiente";
 import { logger } from "@/lib/logger";
-import { criarSessaoPkce, gerarNonceSiwc, CLIENTE_DINAMICO_SIWC } from "@/lib/ai/pontos/pkce-da-assinatura";
+import { criarSessaoPkce, gerarNonceSiwc, CLIENTE_DINAMICO_SIWC, PREFIXO_TROCA_SIWC } from "@/lib/ai/pontos/pkce-da-assinatura";
 import { lerLoginCodex } from "@/lib/ai/credenciais/login-codex";
 import { lerOuCriarHostIdSiwc } from "@/lib/ai/credenciais/host-siwc";
 import { emitirEstado } from "@/lib/agenda/google/estado";
@@ -39,7 +39,9 @@ export const dynamic = "force-dynamic";
 const SAFE_COLUMNS =
   "id, organization_id, provider, label, api_key_last4, validated_at, validation_error, models_available, is_active, created_by, created_at, updated_at";
 
-export default async function CredentialsPage() {
+export default async function CredentialsPage({
+  searchParams,
+}: { searchParams?: Promise<{ trocar?: string | string[] }> } = {}) {
   const user = await requireAuth();
   const activeOrg = await resolveActiveOrg(user);
   if (!activeOrg) redirect("/app");
@@ -72,6 +74,7 @@ export default async function CredentialsPage() {
   const linhaDeLogin = moduloLoginCodex
     ? (todas.find((c) => c.provider === PROVEDOR_POR_ASSINATURA) ?? null)
     : null;
+  const troca = (await searchParams)?.trocar === "1" ? linhaDeLogin : null;
   const credentials = todas.filter((c) => c.provider !== PROVEDOR_POR_ASSINATURA);
   const canWrite = ROLE_RANK[activeOrg.role] >= ROLE_RANK.admin;
   // O par PKCE DESTA renderização: o link mostrado e o verifier do campo de
@@ -97,14 +100,14 @@ export default async function CredentialsPage() {
       ]);
       siwcAutorizado = tokens !== null;
       if (!hostId) throw new Error("host_siwc_nao_persistido");
-      const clientId = tokens?.client_id;
+      const clientId = troca ? undefined : tokens?.client_id;
       const nonce = gerarNonceSiwc();
       sessaoPkce = criarSessaoPkce(
         emitirEstado(
           {
             organizationId: activeOrg.orgId,
             userId: user.id,
-            authSessionId: clientId ?? CLIENTE_DINAMICO_SIWC,
+            authSessionId: troca ? PREFIXO_TROCA_SIWC + troca.id : (clientId ?? CLIENTE_DINAMICO_SIWC),
           },
           { segredo: env.INTERNAL_SECRET, agora: new Date(), nonce },
         ),
@@ -236,7 +239,10 @@ export default async function CredentialsPage() {
       </header>
       {moduloLoginCodex && sessaoPkce && (
         <PainelDeLoginCodex
+          key={troca?.id ?? "conexao"}
           url={sessaoPkce.url}
+          podeTrocar={canWrite}
+          trocando={troca !== null}
           codeVerifier={sessaoPkce.codeVerifier}
           conectado={linhaDeLogin !== null}
           validada={linhaDeLogin?.validated_at != null}

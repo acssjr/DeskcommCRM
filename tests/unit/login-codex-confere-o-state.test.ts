@@ -278,6 +278,20 @@ describe("conectarLoginCodex confere a identidade, o plano e o cliente devolvido
     expect(guardar).not.toHaveBeenCalled();
   });
 
+  it("troca autorizada pelo state usa um registro novo e mantém o ID da credencial", async () => {
+    vi.mocked(lerLoginCodex).mockResolvedValueOnce({ ...tokensBons, subject: "conta-anterior" });
+    const result = await conectarLoginCodex({
+      codigo: retorno("code-bom", estadoComCliente("trocar:credencial-atual")),
+      codeVerifier: VERIFIER,
+    });
+    expect(result).toEqual({ ok: true });
+    expect(trocar).toHaveBeenCalledWith(expect.objectContaining({ clientId: "dynamic-client-test" }));
+    expect(guardar).toHaveBeenCalledWith(expect.objectContaining({
+      idDaCredencialEmTroca: "credencial-atual",
+      tokens: expect.objectContaining({ subject: "siwc-subject" }),
+    }));
+  });
+
   it("consentimento recusado na OpenAI não chega à troca", async () => {
     const r = await conectarLoginCodex({
       codigo: `http://127.0.0.1:1455/auth/callback?error=access_denied&state=${encodeURIComponent(estadoPara(ORG, PESSOA))}`,

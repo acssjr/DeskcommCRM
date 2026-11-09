@@ -15,6 +15,7 @@ import { logger } from "@/lib/logger";
 import { lerOuCriarHostIdSiwc } from "@/lib/ai/credenciais/host-siwc";
 import {
   CLIENTE_DINAMICO_SIWC,
+  PREFIXO_TROCA_SIWC,
   ENDPOINT_DE_JWKS,
   lerRetornoColado,
   trocarCodigoPorTokens,
@@ -95,7 +96,11 @@ export async function conectarLoginCodex(
 
   const clientIdEsperado = estado.authSessionId;
   if (!clientIdEsperado) return { ok: false, error: "estado_invalido" };
-  const clientId = clientIdEsperado === CLIENTE_DINAMICO_SIWC ? retorno.clientId : clientIdEsperado;
+  const idDaCredencialEmTroca = clientIdEsperado.startsWith(PREFIXO_TROCA_SIWC)
+    ? clientIdEsperado.slice(PREFIXO_TROCA_SIWC.length)
+    : undefined;
+  const registroNovo = clientIdEsperado === CLIENTE_DINAMICO_SIWC || idDaCredencialEmTroca !== undefined;
+  const clientId = registroNovo ? retorno.clientId : clientIdEsperado;
   if (!clientId || (retorno.clientId && retorno.clientId !== clientId)) {
     return { ok: false, error: "registro_incompleto" };
   }
@@ -159,7 +164,7 @@ export async function conectarLoginCodex(
   }
 
   const credencialAnterior = await lerLoginCodex({ admin, orgId: activeOrg.orgId });
-  if (credencialAnterior?.subject && credencialAnterior.subject !== identidade.subject) {
+  if (!idDaCredencialEmTroca && credencialAnterior?.subject && credencialAnterior.subject !== identidade.subject) {
     return { ok: false, error: "conta_diferente" };
   }
   tokens = {
@@ -176,6 +181,7 @@ export async function conectarLoginCodex(
     orgId: activeOrg.orgId,
     userId: authUser.id,
     tokens,
+    ...(idDaCredencialEmTroca ? { idDaCredencialEmTroca } : {}),
   });
   if (!gravado.ok) return { ok: false, error: gravado.motivo };
 
