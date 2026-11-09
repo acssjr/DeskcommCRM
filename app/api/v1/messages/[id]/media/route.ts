@@ -24,6 +24,7 @@ import { logger } from "@/lib/logger";
 import { cabecalhoDeDownload, urlAssinadaParaDownload } from "@/lib/messaging/media/download-com-nome";
 import { VALIDADE_DO_LINK_DE_MIDIA_S } from "@/lib/messaging/media/link-temporario";
 import { nomeOriginalDaMensagem } from "@/lib/messaging/media/nome-de-arquivo";
+import { fetchExternalImage } from "@/lib/messaging/media/external-image";
 import { isMediaPathInOrganization } from "@/lib/messaging/media/upload-validation";
 import { ConversorOcupado, TETO_REPRODUCAO_BYTES, paraReproducaoAac } from "@/lib/messaging/media/voice-transcode";
 import {
@@ -166,7 +167,7 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
   // Filtro explícito de organization_id por doutrina (defense-in-depth).
   const { data: msg, error } = await supabase
     .from("messages")
-    .select("id, media_url, media_mime, media_size_bytes, media_storage_path, metadata, channel_session_id")
+    .select("id, direction, sent_via, type, media_url, media_mime, media_size_bytes, media_storage_path, metadata, channel_session_id")
     .eq("id", messageId)
     .eq("organization_id", activeOrg.orgId)
     .maybeSingle();
@@ -238,6 +239,28 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
         message_id: messageId,
         erro: signErr.message,
       });
+    }
+  }
+
+  // Integrações podem enviar imagens públicas sem criar um objeto por conversa.
+  // Elas não são URLs de mídia recebida do canal: o adapter reescreveria o host.
+  // Auth, organização e retenção já foram conferidos acima; a guarda de URL é
+  // revalidada no download, sem credenciais do canal nem redirects automáticos.
+  if (msg.type === "image" && msg.direction === "outbound" && ["user", "ai", "system", "automation", "crm"].includes(msg.sent_via) && msg.media_url && !msg.media_storage_path) {
+    try {
+      const media = await fetchExternalImage(msg.media_url);
+      return new Response(new Uint8Array(media.buffer), {
+        status: 200,
+        headers: {
+          "Content-Type": media.mime,
+          "Cache-Control": "private, max-age=60",
+          "X-Content-Type-Options": "nosniff",
+          "X-Request-Id": requestId,
+          ...(nomeDoArquivo ? { "Content-Disposition": cabecalhoDeDownload(nomeDoArquivo) } : {}),
+        },
+      });
+    } catch {
+      return fail("bad_gateway", t("Mídia indisponível no momento."), 502, { requestId });
     }
   }
 
