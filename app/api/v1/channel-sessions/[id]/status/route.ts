@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";
-import { resolveAuthDual } from "@/lib/api/auth-dual";
+import { resolveAuthDual, tetoDeEscritaDoToken } from "@/lib/api/auth-dual";
 import { fail, ok } from "@/lib/api/wrappers";
 import { ARCHIVED_AT, queryTolerantToMissingArchived } from "@/lib/channels/archived";
 import { CHANNEL_PROVIDER_WAHA } from "@/lib/channels/capabilities";
@@ -13,6 +13,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     requestId, resource: "channel_sessions", role: "agent", scope: "mcp:write",
   });
   if (!auth.ok) return auth.response;
+  const limite = await tetoDeEscritaDoToken(auth, "channel-session-status", requestId);
+  if (limite) return limite;
 
   const { id } = await params;
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {

@@ -4,9 +4,9 @@ Esta referência orienta o fork do Studio e complementa o [design system do Desk
 
 ## Marca do Studio
 
-A referência oficial é o repositório da plataforma de agendamento em `C:\dev\alexandre-souza-studio`. Os vetores ficam em [`public/brand`](../alexandre-souza-studio/public/brand/). O [componente de marca do agendamento](../alexandre-souza-studio/src/components/brand-mark.tsx) usa `studio-horizontal.svg` no tema escuro e `studio-horizontal-light.svg` no claro. O [guia de marca do agendamento](../alexandre-souza-studio/docs/design/marcas-svg.md) registra a origem dos vetores e as variantes.
+A referência oficial é o [repositório da plataforma de agendamento](https://github.com/acssjr/alexandre-souza-studio), disponível localmente em `C:\dev\alexandre-souza-studio`. Os vetores ficam na pasta `public/brand` desse repositório. O componente de marca do agendamento usa variantes horizontais próprias para os temas claro e escuro.
 
-A [barra lateral do CRM](components/shell/Sidebar.tsx) usa [`public/studio-scissors.svg`](public/studio-scissors.svg), uma cópia do [símbolo oficial do Studio](../alexandre-souza-studio/public/brand/studio-scissors.svg). Para atualizar a marca do CRM, confira primeiro o vetor na pasta do agendamento e copie a variante adequada para `public/` do Deskcomm. A cópia local permite que a barra carregue o SVG junto com o CRM.
+A [barra lateral do CRM](components/shell/Sidebar.tsx) usa [`public/studio-scissors.svg`](public/studio-scissors.svg), uma cópia do símbolo oficial do Studio. Para atualizar a marca do CRM, confira primeiro o vetor na pasta do agendamento e copie a variante adequada para `public/` do Deskcomm. A cópia local permite que a barra carregue o SVG junto com o CRM.
 
 ## Espaçamento
 
