@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useT } from "@/hooks/i18n/useT";
 import { usePathname } from "next/navigation";
@@ -12,7 +13,6 @@ import { ContadorDeCasos } from "@/components/shell/ContadorDeCasos";
 import { ContadorDaFila } from "@/components/shell/ContadorDaFila";
 import { ContadorDeTarefas } from "@/components/shell/ContadorDeTarefas";
 import { VersionFooter } from "@/components/shell/VersionFooter";
-import { LogotipoDoProduto, SimboloDoProduto } from "@/components/branding/MarcaDoProduto";
 import { marcaEhADoProduto } from "@/lib/branding";
 import { useMarcaDaInstalacao } from "@/lib/branding/contexto";
 import { GRUPO_NO_RODAPE, sidebarGroups } from "@/lib/navigation/registry";
@@ -147,6 +147,8 @@ export function SidebarContent({
   // Só quando NINGUÉM — nem a instalação, nem a organização — pôs marca própria:
   // é a condição de `lib/branding.ts`, avaliada sobre o que a barra vai mostrar.
   const marcaDoProduto = marcaEhADoProduto({ name: nome, logoUrl: logo ?? null });
+  const usarMarcaDoStudio =
+    marcaDoProduto || (!logo && !logoEscuro && nome === "Alexandre Souza CRM");
 
   return (
     <>
@@ -211,14 +213,22 @@ export function SidebarContent({
               />
             ) : null}
           </div>
-        ) : marcaDoProduto ? (
-          // O desenho do produto, inline (ver `components/branding/MarcaDoProduto.tsx`):
-          // logotipo com a barra aberta, só o símbolo com ela recolhida.
-          collapsed ? (
-            <SimboloDoProduto nome={nome} className="h-8 w-8" />
-          ) : (
-            <LogotipoDoProduto nome={nome} className="h-8 w-auto" />
-          )
+        ) : usarMarcaDoStudio ? (
+          <div className="flex min-w-0 items-center gap-2">
+            <Image
+              src="/studio-scissors.svg"
+              alt={collapsed ? "Alexandre Souza Studio" : ""}
+              width={32}
+              height={27}
+              className="shrink-0"
+              unoptimized
+            />
+            {!collapsed && (
+              <span className="min-w-0 text-sm leading-tight font-semibold">
+                Alexandre Souza<span className="block text-xs font-medium text-text-muted">Studio</span>
+              </span>
+            )}
+          </div>
         ) : (
           <span
             className={cn(
@@ -230,7 +240,7 @@ export function SidebarContent({
             {nome}
           </span>
         )}
-        {collapsed && !marcaDoProduto && (
+        {collapsed && !usarMarcaDoStudio && (
           <span aria-hidden className="text-lg font-bold text-primary">
             {/* Spread e não `[0]`: nome começando com emoji ou acento composto
                 quebraria no meio do code point. Mesma regra de `resolveBranding`
@@ -370,17 +380,23 @@ export function SidebarContent({
                           href={item.href}
                           {...intencao(item.href)}
                           title={collapsed ? t(item.label) : undefined}
+                          aria-label={collapsed ? t(item.label) : undefined}
                           aria-current={isActive ? "page" : undefined}
                           onClick={onNavigate}
                           className={cn(
-                            "relative flex items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
+                            "relative flex min-h-10 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
                             isActive
                               ? "bg-accent text-accent-foreground"
                               : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                             collapsed && "justify-center px-2",
                           )}
                         >
-                          <Icon size={18} weight={isActive ? "fill" : "regular"} aria-hidden />
+                          <Icon
+                            size={18}
+                            className="shrink-0"
+                            weight={isActive ? "bold" : "regular"}
+                            aria-hidden
+                          />
                           {!collapsed && <span className="truncate">{t(item.label)}</span>}
                           {item.healthDot && (
                             <ConnectionHealthDot
@@ -402,10 +418,11 @@ export function SidebarContent({
                         href={group.hub.href}
                         {...intencao(group.hub.href)}
                         title={collapsed ? t(group.hub.label) : undefined}
+                        aria-label={collapsed ? t(group.hub.label) : undefined}
                         aria-current={pathname === group.hub.href ? "page" : undefined}
                         onClick={onNavigate}
                         className={cn(
-                          "flex items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
+                          "flex min-h-10 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
                           pathname === group.hub.href
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
@@ -430,9 +447,10 @@ export function SidebarContent({
             {...intencao(rodape.href)}
             title={collapsed ? t(rodape.label) : undefined}
             aria-current={pathname.startsWith(rodape.href) ? "page" : undefined}
+            aria-label={collapsed ? t(rodape.label) : undefined}
             onClick={onNavigate}
             className={cn(
-              "mb-0.5 flex items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
+              "mb-0.5 flex min-h-10 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
               pathname.startsWith(rodape.href)
                 ? "bg-accent text-accent-foreground"
                 : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
@@ -453,9 +471,10 @@ export function SidebarContent({
             {...intencao(ajuda.href)}
             title={collapsed ? t(ajuda.label) : undefined}
             aria-current={pathname.startsWith(ajuda.href) ? "page" : undefined}
+            aria-label={collapsed ? t(ajuda.label) : undefined}
             onClick={onNavigate}
             className={cn(
-              "mb-0.5 flex items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
+              "mb-0.5 flex min-h-10 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
               pathname.startsWith(ajuda.href)
                 ? "bg-accent text-accent-foreground"
                 : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
@@ -507,7 +526,7 @@ function BotaoDeRecolher({
       onClick={onClick}
       disabled={isPending}
       className={cn(
-        "flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+        "flex min-h-9 w-full items-center gap-2 rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-accent/50 hover:text-foreground",
         (collapsed || soIcone) && "justify-center px-2",
       )}
       aria-label={rotulo}
@@ -562,7 +581,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
         // `duration-base` em vez do `duration-200` literal: 200ms é o mesmo
         // número, mas vindo de `--duration-base`. A Lei de movimento fecha a
         // tabela de durações, e número solto é o que a faz apodrecer.
-        "sticky top-[var(--faixas-de-cima,0px)] z-30 flex h-[calc(100dvh-var(--faixas-de-cima,0px))] shrink-0 flex-col border-r bg-card transition-[width] duration-base",
+        "crm-workspace-rail sticky top-[var(--faixas-de-cima,0px)] z-30 flex h-[calc(100dvh-var(--faixas-de-cima,0px))] shrink-0 flex-col border-r bg-card transition-[width] duration-base motion-reduce:transition-none",
         collapsed ? "w-16" : "w-60",
       )}
     >

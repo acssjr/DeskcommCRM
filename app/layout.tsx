@@ -50,6 +50,13 @@ const atkinson = localFont({
   variable: "--font-atkinson",
 });
 
+const makking = localFont({
+  src: [{ path: "./fonts/makking-variable-pt-latino.woff2", weight: "25 900", style: "normal" }],
+  display: "swap",
+  variable: "--font-makking",
+  adjustFontFallback: false,
+});
+
 const plexMono = localFont({
   src: [
     { path: "./fonts/ibm-plex-mono-400-latin-latin-ext.woff2", weight: "400", style: "normal" },
@@ -337,7 +344,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="pt-BR"
       data-theme="light"
       suppressHydrationWarning
-      className={`${atkinson.variable} ${plexMono.variable}`}
+      className={`${makking.variable} ${atkinson.variable} ${plexMono.variable}`}
     >
       <head>
         {/* Primeiro de tudo: a cor da instalação, antes do CSS e do script de tema. */}

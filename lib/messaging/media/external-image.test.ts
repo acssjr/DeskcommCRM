@@ -20,7 +20,7 @@ describe("imagem externa enviada pela integração", () => {
     const result = await fetchExternalImage(url);
     expect(assertUrlDeMidiaSegura).toHaveBeenCalledWith(url);
     expect(transport).toHaveBeenCalledWith(url, { redirect: "error", credentials: "omit", signal: expect.any(AbortSignal) });
-    expect(vi.mocked(assertUrlDeMidiaSegura).mock.invocationCallOrder[0]).toBeLessThan(transport.mock.invocationCallOrder[0]);
+    expect(assertUrlDeMidiaSegura).toHaveBeenCalledBefore(transport);
     expect(result.mime).toBe("image/jpeg");
     expect(result.buffer).toEqual(Buffer.from([255, 216, 255]));
   });
@@ -34,7 +34,7 @@ describe("imagem externa enviada pela integração", () => {
   it("não segue redirecionamentos e propaga falhas do transporte", async () => {
     transport.mockRejectedValue(new TypeError("redirect forbidden"));
     await expect(fetchExternalImage(url)).rejects.toThrow("redirect forbidden");
-    expect(transport.mock.calls[0][1].redirect).toBe("error");
+    expect(transport).toHaveBeenCalledWith(url, expect.objectContaining({ redirect: "error" }));
   });
 
   it.each(["text/html", "image/svg+xml", "application/json"])("recusa conteúdo ativo ou inesperado: %s", async (mime) => {

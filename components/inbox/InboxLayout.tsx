@@ -898,6 +898,7 @@ export function InboxLayout({
       ref={gradeRef}
       className={cn(
         "grid relative h-[calc(100dvh-var(--faixas-de-cima,0px)-3.5rem-var(--space-6)-max(var(--space-6),var(--rodape-ocupado,0px)))] w-full grid-cols-1 md:grid-cols-[300px_1fr]",
+        "md:rounded-lg md:ring-1 md:ring-border",
         // Recolhido (issue #3004), a terceira trilha vira o trilho estreito do
         // botão de expandir e a conversa fica com o que era da ficha. Duas
         // listas em vez de uma classe com valor em variável: o Tailwind precisa
@@ -946,7 +947,7 @@ export function InboxLayout({
       <div
         ref={listaRef}
         className={cn(
-          "h-full min-h-0 flex-col border-r border-border md:flex",
+          "h-full min-h-0 min-w-0 flex-col bg-card md:flex md:rounded-l-lg md:border-r md:border-border",
           colunas.lista,
         )}
       >

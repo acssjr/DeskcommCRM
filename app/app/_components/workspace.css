@@ -1,0 +1,33 @@
+:where(html:not([data-theme="dark"])) .crm-workspace {
+  --color-bg: #f7f8fa;
+  --color-surface-elevated: #eef0f4;
+  --color-text: #171b24;
+  --color-text-muted: #495365;
+  --color-text-subtle: #596579;
+  --color-border: #dce0e8;
+  --color-border-strong: #77859a;
+}
+
+.crm-workspace-rail a[aria-current="page"] {
+  position: relative;
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.crm-workspace-rail a[aria-current="page"]::before {
+  position: absolute;
+  inset-block: 8px;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 3px;
+  background: currentColor;
+  content: "";
+}
+
+@media (forced-colors: none) {
+  .crm-workspace :focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+  }
+}

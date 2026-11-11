@@ -428,9 +428,9 @@ export function InboxFilters({ value, onChange }: Props) {
   }, [searchInput]);
 
   return (
-    <div className="border-b border-border bg-background">
-      <div className="space-y-2 px-3 pt-3 pb-2">
-        <div className="flex items-center gap-2">
+    <div className="border-b border-border bg-card">
+      <div className="grid gap-2 px-3 pt-3 pb-2">
+        <div className="grid gap-2">
           <div className="relative min-w-0 flex-1">
             <MagnifyingGlass
               size={15}
@@ -448,44 +448,40 @@ export function InboxFilters({ value, onChange }: Props) {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder={t("Buscar por nome, telefone ou última mensagem…")}
-              className="h-9 rounded-full border-transparent bg-surface-elevated pl-9 shadow-none focus-visible:border-border focus-visible:bg-background"
+              className="h-10 rounded-md bg-background pl-9 shadow-none"
               aria-label={t("Buscar conversas")}
             />
           </div>
-          {/* Botão pressionável em vez de Switch: o filtro vive na mesma linha
-              da busca, e o Switch com rótulo pedia uma linha inteira só para
-              si numa coluna de 280px. */}
-          <button
-            type="button"
-            aria-pressed={value.onlyUnread}
-            onClick={() => onChange({ ...value, onlyUnread: !value.onlyUnread })}
-            className={cn(
-              "h-9 shrink-0 rounded-full border px-3 text-xs font-medium transition-colors",
-              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              value.onlyUnread
-                ? "border-accent bg-accent text-accent-foreground"
-                : "border-border bg-transparent text-text-muted hover:bg-surface-elevated",
-            )}
-          >
-            {t("Não lidos")}
-          </button>
-          {/* MESMO PADRÃO do botão acima: filtro auxiliar pressionável, na
-              mesma linha. "Grupos" manda `is_group=true` na listagem — sem ele
-              a aba mostra tudo, individual e grupo misturados, como hoje. */}
-          <button
-            type="button"
-            aria-pressed={value.onlyGroups ?? false}
-            onClick={() => onChange({ ...value, onlyGroups: !value.onlyGroups })}
-            className={cn(
-              "h-9 shrink-0 rounded-full border px-3 text-xs font-medium transition-colors",
-              "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              value.onlyGroups
-                ? "border-accent bg-accent text-accent-foreground"
-                : "border-border bg-transparent text-text-muted hover:bg-surface-elevated",
-            )}
-          >
-            {t("Grupos")}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              aria-pressed={value.onlyUnread}
+              onClick={() => onChange({ ...value, onlyUnread: !value.onlyUnread })}
+              className={cn(
+                "h-9 shrink-0 rounded-full border px-3 text-xs font-medium transition-colors",
+                "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                value.onlyUnread
+                  ? "border-accent bg-accent text-accent-foreground"
+                  : "border-border bg-transparent text-text-muted hover:bg-surface-elevated",
+              )}
+            >
+              {t("Não lidos")}
+            </button>
+            <button
+              type="button"
+              aria-pressed={value.onlyGroups ?? false}
+              onClick={() => onChange({ ...value, onlyGroups: !value.onlyGroups })}
+              className={cn(
+                "h-9 shrink-0 rounded-full border px-3 text-xs font-medium transition-colors",
+                "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                value.onlyGroups
+                  ? "border-accent bg-accent text-accent-foreground"
+                  : "border-border bg-transparent text-text-muted hover:bg-surface-elevated",
+              )}
+            >
+              {t("Grupos")}
+            </button>
+          </div>
         </div>
 
         {(showChannelSwitch || mostrarSeletorDeTag || mostrarSeletorDeAtendente) && (
@@ -683,31 +679,7 @@ export function InboxFilters({ value, onChange }: Props) {
         )}
       </div>
 
-      {/* As setas aparecem só quando há abas fora da área visível; a faixa e o
-          sublinhado continuam com a altura compacta do Inbox.
-
-          `flex-wrap` + `gap-x-1` (#2745) — A FAIXA QUEBRA EM VEZ DE ESCONDER.
-          Medido em browser real, com o CSS do produto compilado e a fonte
-          verdadeira (`tests/sonda-abas-inbox-1280.test.tsx`), as seis abas
-          somam 358px de rótulo+contagem e 378px com o gap de 4px; a coluna da
-          lista vale de 240 (mínimo do arraste, `LIMITES_LISTA`) a 520px, e o
-          padrão da faixa `xl` — a janela de 1280px da issue — é 272px. Sem
-          quebra, o `overflow-x-auto` rolava 191px na coluna de 272 e 13px na
-          de 450: "Fechadas" cortada e "Arquivadas" escondida atrás da seta,
-          que era exatamente o corte medido. Agora, na mesma medição: 2 linhas
-          (68px) em 272, 1 linha (30px) em 450, e as seis dentro da coluna em
-          toda a faixa — rolagem zero.
-
-          `shrink-0` + `whitespace-nowrap` seguem valendo: rótulo não encolhe
-          nem parte no meio. O `gap-x-1` só aperta onde não há folga (com
-          `justify-between` a sobra continua distribuída, então a faixa larga
-          não muda de figura) — e é o que leva 272px de 3 linhas para 2. A
-          seta de rolagem fica sendo o que sempre foi: reserva para o caso em
-          que UMA aba sozinha não cabe (zoom alto, coluna arrastada no mínimo).
-
-          Só o LAYOUT mudou: `value.tab`, `onChange`, `visibleInboxTabs` e
-          `countFor` estão byte a byte como estavam — a aba continua o mesmo
-          filtro com o mesmo rótulo, e "Automático" continua "Automático". */}
+      {/* A faixa quebra conforme a largura da lista. As setas só aparecem quando há rolagem. */}
       <Tabs
         value={value.tab}
         onValueChange={(v) => onChange(comAba(value, v as InboxTab))}
@@ -723,13 +695,11 @@ export function InboxFilters({ value, onChange }: Props) {
             >
               <CaretLeft size={13} aria-hidden />
             </button>
-          ) : (
-            <span className="w-4 shrink-0" aria-hidden />
-          )}
+          ) : null}
           <TabsList
             ref={tabsListRef}
             onScroll={updateMoreTabs}
-            className="h-auto min-w-0 flex-1 flex-wrap justify-between gap-x-1 gap-y-2 rounded-none bg-transparent p-0 [scrollbar-width:none]"
+            className="h-auto min-w-0 flex-1 flex-wrap justify-start gap-1 rounded-none bg-transparent py-1 [scrollbar-width:none]"
           >
             {tabs.map((tab) => {
               const meta = INBOX_TABS.find((t) => t.value === tab)!;
@@ -738,7 +708,7 @@ export function InboxFilters({ value, onChange }: Props) {
                 <TabsTrigger
                   key={tab}
                   value={tab}
-                  className="shrink-0 gap-1 rounded-none border-b-2 border-transparent px-0 pb-2 pt-1 text-xs font-medium text-text-muted data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:text-text data-[state=active]:shadow-none"
+                  className="shrink-0 gap-1 rounded-md px-2 py-1 text-xs font-medium text-text-muted hover:bg-surface-elevated data-[state=active]:bg-surface-elevated data-[state=active]:font-semibold data-[state=active]:text-text data-[state=active]:shadow-none"
                 >
                   {t(meta.label)}
                   {depoisDeMontar && typeof count === "number" && count > 0 && (
@@ -757,9 +727,7 @@ export function InboxFilters({ value, onChange }: Props) {
             >
               <CaretRight size={13} aria-hidden />
             </button>
-          ) : (
-            <span className="w-4 shrink-0" aria-hidden />
-          )}
+          ) : null}
         </div>
       </Tabs>
     </div>

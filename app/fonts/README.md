@@ -44,5 +44,9 @@ curl -sA "$UA" 'https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible:40
 
 ## Licença
 
-Todas as famílias são distribuídas sob a SIL Open Font License 1.1 — texto e
+As famílias da tabela são distribuídas sob a SIL Open Font License 1.1. Texto e
 avisos de copyright em [`OFL.txt`](OFL.txt).
+
+`makking-variable-pt-latino.woff2` é a fonte padrão da interface nesta branch.
+O arquivo veio da prévia da Makking fornecida para a revisão local e tem cobertura
+de português. Atkinson permanece como fallback para caracteres ausentes.

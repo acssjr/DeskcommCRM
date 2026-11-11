@@ -165,13 +165,11 @@ export function StageColumn({
         coluna de etapa não vira painel. De `md` para cima volta o `w-80` de
         sempre, onde a graça é justamente ver várias etapas ao mesmo tempo.
       */
-      className="bg-surface-elevated/40 flex min-h-full w-[85vw] max-w-80 shrink-0 snap-center flex-col rounded-lg border border-border md:w-80"
+      className="flex min-h-full w-[85vw] max-w-80 shrink-0 snap-center flex-col rounded-lg border border-border bg-card md:w-80"
       data-etapa-do-quadro={stage.id}
     >
-      {/* Cabeçalho e total PRESOS no alto do quadro enquanto os cards rolam: com
-          uma etapa comprida, é o que diz em que etapa se está olhando. O fundo
-          opaco (`bg-background`) é o que impede os cards de aparecerem por baixo;
-          por dentro, a mesma camada translúcida da coluna, para o tom não mudar.
+      {/* Cabeçalho e total PRESOS no alto do quadro enquanto os cards rolam. O
+          fundo opaco (`bg-card`) impede os cards de aparecerem por baixo.
 
           A BORDA DE CIMA É DO CABEÇALHO, não da coluna (#3030): a coluna tem
           `border` e o cabeçalho `sticky top-0`, então ao rolar a borda da coluna
@@ -180,7 +178,8 @@ export function StageColumn({
           lados), o contorno de cima cobre exatamente a borda da coluna e viaja
           junto com o cabeçalho preso. */}
       <div
-        className="sticky top-0 z-10 -mx-px -mt-px rounded-t-lg border-x border-t border-border bg-background"
+        className="sticky top-0 z-10 -mx-px -mt-px rounded-t-lg border-x border-t border-border bg-card"
+        style={stage.color ? { boxShadow: `inset 0 3px 0 ${stage.color}` } : undefined}
         data-cabecalho-da-etapa
       >
         <div className="bg-surface-elevated/40 rounded-t-lg">
