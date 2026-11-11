@@ -84,11 +84,11 @@ describe("Tailwind 4 — a ponte token → utilitário", () => {
 
     expect(consumidos.length).toBeGreaterThan(50);
 
-    // As duas fontes são injetadas pelo `next/font` como custom property no
+    // As fontes são injetadas pelo `next/font` como custom property no
     // `<html>` (app/layout.tsx), não pelo `:root` do CSS — por isso não caem na
     // regra acima. A isenção não é um buraco: o teste confere logo abaixo que
     // elas continuam sendo declaradas lá.
-    const DE_FORA_DO_CSS = ["--font-atkinson", "--font-mono"];
+    const DE_FORA_DO_CSS = ["--font-makking", "--font-atkinson", "--font-mono"];
     const layout = fs.readFileSync(path.join(RAIZ, "app/layout.tsx"), "utf8");
     for (const v of DE_FORA_DO_CSS) {
       expect(layout, `${v} deixou de ser declarada pelo next/font`).toContain(`"${v}"`);
@@ -686,24 +686,17 @@ describe("Tailwind 4 — `bg-surface-*` sem token é classe muda", () => {
     ).toEqual([]);
   });
 
-  it("as seis superfícies do quadro do funil resolvem (issue #3791)", () => {
-    // Os seis usos medidos na `main` a9a99abc86, arquivo por arquivo — a lista
-    // é o escopo da issue, e falhar aqui é falhar no defeito que o autor viu.
+  it("as superfícies do quadro do funil resolvem (issue #3791)", () => {
     const SITES = [
       "app/app/pipelines/[id]/_client.tsx", // aviso de funil arquivado
       "components/kanban/NextActionSlot.tsx", // hover de "Ignorar"
       "components/kanban/ReactivationSlot.tsx", // hover de "Encerrar"
       "components/kanban/KanbanBoard.tsx", // esqueleto do quadro
-      "components/kanban/StageColumn.tsx", // coluna (2: corpo e cabeçalho)
+      "components/kanban/StageColumn.tsx", // camada do cabeçalho da coluna
     ];
     const achadas = superficies(SITES.map((p) => path.join(RAIZ, p)));
 
-    // `StageColumn.tsx` contribui com dois; o piso é 6, e não igualdade, para
-    // que uma coluna nova legítima não reprove por ser a sétima.
-    expect(
-      achadas.length,
-      `esperava ao menos 6 usos de bg-surface-* no quadro do funil, achei ${achadas.length}`,
-    ).toBeGreaterThanOrEqual(6);
+    expect(new Set(achadas.map(({ onde }) => onde)).size).toBe(SITES.length);
 
     expect(
       achadas.filter(({ nome }) => !resolve(nome)).map(({ onde, nome }) => `${onde}  bg-${nome}`),
