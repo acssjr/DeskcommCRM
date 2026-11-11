@@ -699,7 +699,7 @@ export function InboxFilters({ value, onChange }: Props) {
           <TabsList
             ref={tabsListRef}
             onScroll={updateMoreTabs}
-            className="h-auto min-w-0 flex-1 flex-wrap justify-start gap-1 rounded-none bg-transparent py-1 [scrollbar-width:none]"
+            className="h-auto min-w-0 flex-1 flex-wrap justify-start gap-x-1 gap-y-1 rounded-none bg-transparent py-1 [scrollbar-width:none]"
           >
             {tabs.map((tab) => {
               const meta = INBOX_TABS.find((t) => t.value === tab)!;
