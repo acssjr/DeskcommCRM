@@ -8,6 +8,7 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 export const CLIENTE_DINAMICO_SIWC = "dynamic_agent_client";
+export const PREFIXO_TROCA_SIWC = "trocar:";
 export const RECURSO_SIWC = "https://api.openai.com/v1";
 export const ENDPOINT_DE_AUTORIZACAO = "https://auth.openai.com/api/accounts/authorize";
 export const ENDPOINT_DE_TOKEN = "https://auth.openai.com/api/accounts/oauth/token";

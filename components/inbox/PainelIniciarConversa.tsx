@@ -388,7 +388,7 @@ export function BotaoIniciarConversa() {
         <Button
           type="button"
           variant="outline"
-          className="w-full justify-center gap-2"
+          className="h-10 w-full justify-center gap-2"
           onClick={() => setAberto(true)}
         >
           <ChatCircle size={16} weight="regular" aria-hidden />

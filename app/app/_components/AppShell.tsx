@@ -11,6 +11,7 @@ import { useCrmAlerts } from "@/hooks/notifications/useCrmAlerts";
 import { useNotifyOpenFromServiceWorker } from "@/lib/notifications/notify_open";
 import { ensureNotifyServiceWorker } from "@/lib/notifications/service_worker";
 import { estiloDaReserva, useOcupacaoDoRodape } from "@/lib/ui/rodape-ocupado";
+import "./workspace.css";
 
 interface AppShellProps {
   sidebarCollapsed: boolean;
@@ -63,7 +64,7 @@ export function AppShell({ sidebarCollapsed, podeAtender, children }: AppShellPr
       topo ficam ACIMA da casca, e sem o desconto o documento media a tela
       mais a faixa — rolável justo quando o WhatsApp está desconectado.
     */
-    <div className="flex min-h-[calc(100dvh-var(--faixas-de-cima,0px))] w-full bg-background">
+    <div className="crm-workspace flex min-h-[calc(100dvh-var(--faixas-de-cima,0px))] w-full bg-background">
       <BarraDeProgressoNavegacao />
       <div className="hidden md:block">
         <Sidebar collapsed={sidebarCollapsed} />
@@ -110,7 +111,7 @@ export function AppShell({ sidebarCollapsed, podeAtender, children }: AppShellPr
           peça fixa quem cobre isso é o terceiro termo do `max()` do contrato.
         */}
         <main
-          className="flex-1 overflow-auto p-4 pb-area-segura sm:p-6"
+          className="min-w-0 flex-1 overflow-auto p-4 pb-area-segura sm:p-6"
           style={estiloDaReserva(ocupacaoDoRodape)}
           data-rodape-ocupado={ocupacaoDoRodape}
         >

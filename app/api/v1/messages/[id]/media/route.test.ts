@@ -36,6 +36,7 @@ vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }));
 vi.mock("@/lib/auth/server", () => ({ loadAuthUser: vi.fn() }));
 vi.mock("@/lib/auth/require-role", () => ({ orgAtivaDaApi: vi.fn() }));
 vi.mock("@/lib/ai/dispatcher/rate-limit", () => ({ checkRateLimit: vi.fn() }));
+vi.mock("@/lib/messaging/media/external-image", () => ({ fetchExternalImage: vi.fn() }));
 vi.mock("@/lib/messaging/media/voice-transcode", () => ({
   ConversorOcupado: class extends Error {},
   TETO_REPRODUCAO_BYTES: 1024,
@@ -52,6 +53,7 @@ vi.mock("@/lib/channels", async () => {
 });
 
 import { checkRateLimit } from "@/lib/ai/dispatcher/rate-limit";
+import { fetchExternalImage } from "@/lib/messaging/media/external-image";
 import { orgAtivaDaApi } from "@/lib/auth/require-role";
 import { loadAuthUser } from "@/lib/auth/server";
 import { DEFAULT_CHANNEL_PROVIDER, getAdapter } from "@/lib/channels";
@@ -75,6 +77,9 @@ type Linha = {
   media_storage_path: string | null;
   metadata: Record<string, unknown> | null;
   channel_session_id: string | null;
+  direction?: string;
+  sent_via?: string;
+  type?: string;
 };
 
 /** O que foi pedido ao Storage — o único lugar onde o nome pode virar download. */
@@ -215,6 +220,30 @@ describe("sem ?baixar=1", () => {
 
     expect(res.status).toBe(302);
     expect(ASSINATURAS[0]?.opcoes).toBeUndefined();
+  });
+});
+
+describe("imagem externa enviada pela integração", () => {
+  const imageUrl = "https://studio.example/images/confirmation.jpg";
+
+  it("serve os bytes da URL externa original, sem pedir ao adapter de mídia recebida", async () => {
+    MENSAGENS = [linha({ direction: "outbound", sent_via: "system", type: "image", media_storage_path: null, media_url: imageUrl, media_mime: "image/jpeg" })];
+    vi.mocked(fetchExternalImage).mockResolvedValue({ buffer: Buffer.from("jpeg-do-studio"), mime: "image/jpeg" });
+    const adapterCalls = vi.mocked(getAdapter).mock.calls.length;
+    const res = await GET(new NextRequest(url()), PARAMS);
+    expect(res.status).toBe(200);
+    expect(fetchExternalImage).toHaveBeenLastCalledWith(imageUrl);
+    expect(await res.text()).toBe("jpeg-do-studio");
+    expect(res.headers.get("content-type")).toBe("image/jpeg");
+    expect(vi.mocked(getAdapter).mock.calls.length).toBe(adapterCalls);
+  });
+
+  it("não baixa a imagem de uma mensagem de outra organização", async () => {
+    MENSAGENS = [linha({ organization_id: "outra-org", direction: "outbound", sent_via: "system", type: "image", media_storage_path: null, media_url: imageUrl })];
+    const fetchCalls = vi.mocked(fetchExternalImage).mock.calls.length;
+    const res = await GET(new NextRequest(url()), PARAMS);
+    expect(res.status).toBe(404);
+    expect(vi.mocked(fetchExternalImage).mock.calls.length).toBe(fetchCalls);
   });
 });
 

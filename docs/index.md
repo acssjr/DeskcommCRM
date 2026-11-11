@@ -125,6 +125,8 @@ Detalham schema SQL e payloads exatos. **Consulte antes de modelar qualquer cois
 
 ## 5. Design system
 
+[Regras de design do CRM Alexandre Souza Studio](../DESIGN.md) descreve a escala de espaçamento e a aplicação no fork.
+
 [`design-system/README.md`](design-system/README.md) é o ponto de entrada (v1.0, 5 escolhas
 visuais lockadas: paleta Sage, Atkinson Hyperlegible, densidade aerada, Phosphor duotone,
 IBM Plex Mono). Numerados `00`–`09`: overview, tokens, paleta, tipografia, densidade,

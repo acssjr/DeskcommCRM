@@ -103,6 +103,12 @@ describe("o desenho na barra lateral", () => {
     expect(document.querySelector("svg[role=img]")).toBeNull();
   });
 
+  it("com a marca do Studio e sem arte cadastrada, mostra o símbolo do agendamento", () => {
+    renderSidebar({ name: "Alexandre Souza CRM", logoUrl: null, initial: "A" }, true);
+    expect(screen.getByRole("img", { name: "Alexandre Souza Studio" }).getAttribute("src"))
+      .toBe("/studio-scissors.svg");
+  });
+
   it("com nome da ORGANIZAÇÃO sobre a instalação padrão, o nome dela vence o desenho", () => {
     contexto = { user: usuario, activeOrg: { ...org, marca: { nome: "Loja da Ana" } } };
     renderSidebar(PADRAO, false);

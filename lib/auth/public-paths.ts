@@ -151,6 +151,7 @@ export const PUBLIC_PATHS: RegExp[] = [
   // método é a própria rota, como sempre foi.
   /^\/api\/v1\/agenda\/agendamentos$/,
   /^\/api\/v1\/conversations\/open-with-contact$/,
+  /^\/api\/v1\/channel-sessions\/[0-9a-f-]{36}\/status$/i,
   // CRIAÇÃO DE RASCUNHO SUGERIDO SERVER-TO-SERVER (issue #1611). Mesma
   // dualidade da linha acima: sessão OU Bearer `dsk_…` com escopo `mcp:write`,
   // resolvida por `lib/api/auth-dual.ts` DENTRO da rota

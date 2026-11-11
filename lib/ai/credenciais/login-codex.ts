@@ -89,6 +89,7 @@ export async function guardarLoginCodex(p: {
   userId: string;
   tokens: TokensDoCodex;
   requestId?: string;
+  idDaCredencialEmTroca?: string;
 }): Promise<ResultadoDeGuardarLogin> {
   if (!(await moduloLigado(p.admin, "login_codex"))) {
     return { ok: false, motivo: "modulo_desligado" };
@@ -107,6 +108,9 @@ export async function guardarLoginCodex(p: {
   };
 
   const existente = await linhaDoLogin(p.admin, p.orgId);
+  if (p.idDaCredencialEmTroca && existente?.id !== p.idDaCredencialEmTroca) {
+    return { ok: false, motivo: "banco" };
+  }
   const r = existente
     ? await rotacionarCredencial({
         ...comum,
@@ -254,7 +258,7 @@ export async function renovarComTravaDeBanco(p: {
     .eq("id", p.credentialId)
     .eq("organization_id", p.orgId)
     .lt("updated_at", limite)
-    .select("id")
+    .select("id, updated_at")
     .maybeSingle();
   if (!ganha) return { ok: false, motivo: "em_curso" };
 
@@ -323,7 +327,8 @@ export async function renovarComTravaDeBanco(p: {
         validation_error: `renovacao_recusada:${motivoDetalhe}`,
       })
       .eq("id", p.credentialId)
-      .eq("organization_id", p.orgId);
+      .eq("organization_id", p.orgId)
+      .eq("updated_at", ganha.updated_at);
     // Só o rótulo: a mensagem do provedor pode carregar o refresh_token
     // recusado, e log não é lugar de segredo. Nada de access_token, nada de
     // cabeçalho de autorização.
@@ -344,6 +349,7 @@ export async function renovarComTravaDeBanco(p: {
     apiKey: JSON.stringify(renovados),
     label: ROTULO_DO_LOGIN_CODEX,
     manterModelos: true,
+    atualizadoEmEsperado: ganha.updated_at,
   });
   if (!gravado.ok) {
     // A troca com o provedor deu certo e a gravação não: o motivo tem nome
