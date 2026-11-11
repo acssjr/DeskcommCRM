@@ -8,6 +8,7 @@ import { ArrowRight, BookOpen, CaretDoubleLeft, CaretDoubleRight, CaretDown, Gea
 import { cn } from "@/lib/utils";
 import { toggleSidebar } from "@/app/actions/shell/toggleSidebar";
 import { useAuth } from "@/hooks/auth/AuthProvider";
+import { LogotipoDoProduto, SimboloDoProduto } from "@/components/branding/MarcaDoProduto";
 import { ConnectionHealthDot } from "@/components/connections/ConnectionHealthDot";
 import { ContadorDeCasos } from "@/components/shell/ContadorDeCasos";
 import { ContadorDaFila } from "@/components/shell/ContadorDaFila";
@@ -147,8 +148,7 @@ export function SidebarContent({
   // Só quando NINGUÉM — nem a instalação, nem a organização — pôs marca própria:
   // é a condição de `lib/branding.ts`, avaliada sobre o que a barra vai mostrar.
   const marcaDoProduto = marcaEhADoProduto({ name: nome, logoUrl: logo ?? null });
-  const usarMarcaDoStudio =
-    marcaDoProduto || (!logo && !logoEscuro && nome === "Alexandre Souza CRM");
+  const usarMarcaDoStudio = !logo && !logoEscuro && nome === "Alexandre Souza CRM";
 
   return (
     <>
@@ -229,6 +229,12 @@ export function SidebarContent({
               </span>
             )}
           </div>
+        ) : marcaDoProduto ? (
+          collapsed ? (
+            <SimboloDoProduto nome={nome} className="h-8 w-8" />
+          ) : (
+            <LogotipoDoProduto nome={nome} className="h-8 w-auto" />
+          )
         ) : (
           <span
             className={cn(
@@ -240,7 +246,7 @@ export function SidebarContent({
             {nome}
           </span>
         )}
-        {collapsed && !usarMarcaDoStudio && (
+        {collapsed && !marcaDoProduto && !usarMarcaDoStudio && (
           <span aria-hidden className="text-lg font-bold text-primary">
             {/* Spread e não `[0]`: nome começando com emoji ou acento composto
                 quebraria no meio do code point. Mesma regra de `resolveBranding`
@@ -384,7 +390,7 @@ export function SidebarContent({
                           aria-current={isActive ? "page" : undefined}
                           onClick={onNavigate}
                           className={cn(
-                            "relative flex min-h-10 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
+                            "relative flex min-h-11 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors md:min-h-0",
                             isActive
                               ? "bg-accent text-accent-foreground"
                               : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
@@ -422,7 +428,7 @@ export function SidebarContent({
                         aria-current={pathname === group.hub.href ? "page" : undefined}
                         onClick={onNavigate}
                         className={cn(
-                          "flex min-h-10 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
+                          "flex min-h-11 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors md:min-h-0",
                           pathname === group.hub.href
                             ? "bg-accent text-accent-foreground"
                             : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
@@ -450,7 +456,7 @@ export function SidebarContent({
             aria-label={collapsed ? t(rodape.label) : undefined}
             onClick={onNavigate}
             className={cn(
-              "mb-0.5 flex min-h-10 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
+              "mb-0.5 flex min-h-11 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors md:min-h-0",
               pathname.startsWith(rodape.href)
                 ? "bg-accent text-accent-foreground"
                 : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
@@ -474,7 +480,7 @@ export function SidebarContent({
             aria-label={collapsed ? t(ajuda.label) : undefined}
             onClick={onNavigate}
             className={cn(
-              "mb-0.5 flex min-h-10 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors",
+              "mb-0.5 flex min-h-11 items-center gap-3 rounded-md px-3 py-1 text-sm transition-colors md:min-h-0",
               pathname.startsWith(ajuda.href)
                 ? "bg-accent text-accent-foreground"
                 : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
