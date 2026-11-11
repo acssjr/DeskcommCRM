@@ -393,7 +393,31 @@ function umRodizioPorRegra(
  * Os objetos são os MESMOS de sempre, byte a byte — só mudou onde moram.
  */
 const acoesFixas = [
-  z.object({ type: z.literal("create_or_move_lead"), config: z.object({ pipeline_id: z.string().uuid(), stage_id: z.string().uuid() }) }),
+  z.object({
+    type: z.literal("create_or_move_lead"),
+    config: z.object({
+      pipeline_id: z.string().uuid(),
+      stage_id: z.string().uuid(),
+      /**
+       * #4297 — O MOTIVO DA PERDA, quando a etapa de destino é de perda.
+       *
+       * A etapa exige motivo (issue #917: `decideMotivoDaPerda`), e sem esta
+       * chave a ação não tinha como informá-lo: toda regra que apontava para a
+       * etapa de perda falhava em execução. Opcional aqui de propósito — as
+       * regras JÁ gravadas não têm a chave e continuam válidas; elas é que
+       * passam a falhar com o código real no recibo em vez de `internal_error`.
+       * Quem exige o preenchimento é a porta de gravação, que sabe ler
+       * `is_lost` da etapa (`lib/automation/motivo-da-perda-na-acao.ts`).
+       *
+       * O editor deixa o campo como "" quando a etapa não é de perda; "" vira
+       * AUSÊNCIA aqui, e não um motivo vazio que o trigger recusaria.
+       */
+      lost_reason: z.preprocess(
+        (v) => (v === "" ? undefined : v),
+        z.string().trim().min(1).max(500).optional(),
+      ),
+    }),
+  }),
   z.object({
     type: z.literal("send_whatsapp_message"),
     config: z.object({
@@ -494,6 +518,15 @@ const acoesFixas = [
        * a chave e continuam iguais; sem `.optional()` o zod descartaria o campo
        * no save e a tela mostraria uma escolha que não foi gravada.
        */
+      destino: z.enum(["card", "contato"]).optional(),
+    }),
+  }),
+  // A irmã da `add_tag`: TIRA as etiquetas, do card ou do contato, com a mesma
+  // forma de config e o mesmo destino padrão (`card`).
+  z.object({
+    type: z.literal("remove_tag"),
+    config: z.object({
+      tags: z.array(z.string().min(1).max(60)).min(1).max(10),
       destino: z.enum(["card", "contato"]).optional(),
     }),
   }),
