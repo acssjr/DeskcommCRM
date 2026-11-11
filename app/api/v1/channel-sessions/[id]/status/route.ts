@@ -1,14 +1,19 @@
 import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { resolveAuthDual, tetoDeEscritaDoToken } from "@/lib/api/auth-dual";
 import { fail, ok } from "@/lib/api/wrappers";
+import { CHANNEL_SESSION_REF_COLUMNS, getAdapter, resolveSessionRef } from "@/lib/channels";
 import { ARCHIVED_AT, queryTolerantToMissingArchived } from "@/lib/channels/archived";
-import { CHANNEL_PROVIDER_WAHA } from "@/lib/channels/capabilities";
 import { canalDesativado } from "@/lib/channels/desativado";
-import { getWahaClient } from "@/lib/waha/client";
+
+const parametros = z.object({ id: z.guid() });
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = randomUUID();
+  const caminho = parametros.safeParse(await params);
+  if (!caminho.success) return fail("not_found", "Canal não encontrado.", 404, { requestId });
+
   const auth = await resolveAuthDual(req, {
     requestId, resource: "channel_sessions", role: "agent", scope: "mcp:write",
   });
@@ -16,16 +21,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const limite = await tetoDeEscritaDoToken(auth, "channel-session-status", requestId);
   if (limite) return limite;
 
-  const { id } = await params;
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-    return fail("not_found", "Canal não encontrado.", 404, { requestId });
-  }
-
   const channel = () => auth.supabase.from("channel_sessions")
-    .select("waha_session_name,metadata")
-    .eq("id", id)
-    .eq("organization_id", auth.organizationId)
-    .eq("provider", CHANNEL_PROVIDER_WAHA);
+    .select(`${CHANNEL_SESSION_REF_COLUMNS}, metadata`)
+    .eq("id", caminho.data.id)
+    .eq("organization_id", auth.organizationId);
   const { data, error } = await queryTolerantToMissingArchived(
     () => channel().is(ARCHIVED_AT, null).maybeSingle(),
     () => channel().maybeSingle(),
@@ -34,12 +33,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!data) return fail("not_found", "Canal não encontrado.", 404, { requestId });
   if (canalDesativado(data.metadata)) return ok({ status: "paused" }, { requestId });
 
-  const waha = getWahaClient();
-  if (!waha || !data.waha_session_name) return fail("connection_status_failed", "Canal sem transporte disponível.", 503, { requestId });
   try {
-    const session = await waha.getVerifiedSession(data.waha_session_name);
-    return ok({ status: session?.status === "WORKING" ? "connected" : "disconnected" }, { requestId });
+    const adapter = getAdapter(data.provider);
+    const sessionRef = resolveSessionRef(data);
+    if (!adapter.checkHealth || !sessionRef) {
+      return fail("connection_status_failed", "Canal sem consulta de estado disponível.", 503, { requestId });
+    }
+    const saude = await adapter.checkHealth({ organizationId: auth.organizationId, sessionRef });
+    if (saude.reachable && saude.status) {
+      return ok({ status: saude.status === "WORKING" ? "connected" : "disconnected" }, { requestId });
+    }
   } catch {
-    return fail("connection_status_failed", "Não foi possível consultar o WhatsApp.", 502, { requestId });
+    return fail("connection_status_failed", "Não foi possível consultar o canal.", 502, { requestId });
   }
+  return fail("connection_status_failed", "Não foi possível consultar o canal.", 502, { requestId });
 }
